@@ -28,13 +28,13 @@ __export(index_exports, {
 });
 module.exports = __toCommonJS(index_exports);
 
-// ../../dad_sdk/dist/version.js
+// node_modules/@delulu-addon/dad-sdk/dist/version.js
 var VERSION_RE = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 function isValidVersion(version) {
   return VERSION_RE.test(version);
 }
 
-// ../../dad_sdk/dist/validation.js
+// node_modules/@delulu-addon/dad-sdk/dist/validation.js
 function isHttpsUrl(value) {
   if (typeof value !== "string")
     return false;
@@ -71,7 +71,7 @@ function validateApiKeyShape(value, label = "apiKey") {
   return errors;
 }
 
-// ../../dad_sdk/dist/manifest.js
+// node_modules/@delulu-addon/dad-sdk/dist/manifest.js
 var DAD_CAPABILITIES = ["meta", "direct_stream", "torrent", "subtitle"];
 var DAD_DEFAULT_LOGO_URL = typeof process !== "undefined" && process.env && process.env.DAD_DEFAULT_LOGO_URL || "https://delulu-addons.pages.dev/default_addon_logo.png";
 function withDefaultLogo(manifest, defaultLogoUrl = DAD_DEFAULT_LOGO_URL) {
@@ -166,7 +166,7 @@ function validateManifest(raw) {
   return { valid: errors.length === 0, errors };
 }
 
-// ../../dad_sdk/dist/define.js
+// node_modules/@delulu-addon/dad-sdk/dist/define.js
 var CAPABILITY_HANDLERS = {
   meta: "getMeta",
   direct_stream: "getStreams",
