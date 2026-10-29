@@ -65,7 +65,8 @@ function validateApiKeyShape(value, label = "apiKey") {
   if (typeof ak.required !== "boolean") {
     errors.push(`'${label}.required' must be a boolean`);
   }
-  if (!isHttpsUrl(ak.pageUrl)) {
+  const pageUrl = ak.pageUrl !== void 0 ? ak.pageUrl : ak.page_url;
+  if (!isHttpsUrl(pageUrl)) {
     errors.push(`'${label}.pageUrl' must be an HTTPS URL`);
   }
   return errors;
@@ -129,19 +130,21 @@ function validateManifest(raw) {
     }
   }
   if (m.type === "http") {
-    if (!m.baseUrl || typeof m.baseUrl !== "string") {
+    const baseUrl = m.baseUrl !== void 0 ? m.baseUrl : m.base_url;
+    if (!baseUrl || typeof baseUrl !== "string") {
       errors.push("HTTP addon requires 'baseUrl' string URL");
-    } else if (!isBareHttpsUrl(m.baseUrl)) {
+    } else if (!isBareHttpsUrl(baseUrl)) {
       errors.push("HTTP addon 'baseUrl' must be a bare HTTPS origin URL - no path, no query string, no fragment (e.g. 'https://addon.example.com'). The addon's routes live directly under it: {baseUrl}/streams/... and its manifest at {baseUrl}/manifest.json.");
     }
-    if (m.apiKey !== void 0) {
-      errors.push(...validateApiKeyShape(m.apiKey, "apiKey"));
+    const apiKey = m.apiKey !== void 0 ? m.apiKey : m.api_key;
+    if (apiKey !== void 0) {
+      errors.push(...validateApiKeyShape(apiKey, "apiKey"));
     }
     if (m.signature !== void 0 || m.publicKeyId !== void 0) {
       errors.push("HTTP addons are NOT signed - remove 'signature' and 'publicKeyId'. They were v1 fields and carry no meaning in v2.");
     }
   } else if (m.type === "js") {
-    if (m.baseUrl !== void 0) {
+    if (m.baseUrl !== void 0 || m.base_url !== void 0) {
       errors.push("JS addons do not use 'baseUrl' - remove 'baseUrl' and configure 'bundle.url' instead.");
     }
     if (!m.bundle || typeof m.bundle !== "object" || Array.isArray(m.bundle)) {
@@ -154,8 +157,9 @@ function validateManifest(raw) {
         errors.push("JS addon 'bundle.sha256' must be exactly 64 lowercase hexadecimal characters");
       }
     }
-    if (m.apiKey !== void 0) {
-      errors.push(...validateApiKeyShape(m.apiKey, "apiKey"));
+    const apiKey = m.apiKey !== void 0 ? m.apiKey : m.api_key;
+    if (apiKey !== void 0) {
+      errors.push(...validateApiKeyShape(apiKey, "apiKey"));
     }
     if (m.signature !== void 0 || m.publicKeyId !== void 0 || m.platform_assets !== void 0 || m.target !== void 0) {
       errors.push("JavaScript addons are sandboxed and NOT signed - remove signing fields ('signature', 'publicKeyId', 'platform_assets').");
@@ -225,10 +229,32 @@ var ID_API_BASE = "https://id-api.not-phoenix.workers.dev";
 var GRAPHQL_ENDPOINT = "https://graphql.imdb.com/";
 var IMDB_ORIGIN = "https://www.imdb.com";
 var CINEMETA_BASE = "https://v3-cinemeta.strem.io";
-var QUERY_TITLE_VIDEOS = "query TitleVideosAndRating($const: ID!, $first: Int!, $filter: VideosQueryFilter, $sort: VideoSort) { title(id: $const) { titleText { text } ratingsSummary { aggregateRating } videoStrip(first: $first, filter: $filter, sort: $sort) { edges { node { id name { value } } } } } }";
+var QUERY_TITLE_VIDEOS = "query TitleVideosAndRating($const: ID!, $first: Int!, $filter: VideosQueryFilter, $sort: VideoSort) { title(id: $const) { titleText { text } ratingsSummary { aggregateRating } latestTrailer { id name { value } } videoStrip(first: $first, filter: $filter, sort: $sort) { edges { node { id name { value } } } } } }";
 var QUERY_VIDEO_PLAYBACK = "query VideoPlayback($id: ID!) { video(id: $id) { playbackURLs { url videoMimeType videoDefinition } } }";
+var SEED_MAPPINGS = {
+  "movie:9761": "tt0879854",
+  // Elephants Dream
+  "movie:10378": "tt1254207",
+  // Big Buck Bunny
+  "movie:45745": "tt1727587",
+  // Sintel
+  "movie:133701": "tt2423376",
+  // Tears of Steel
+  "movie:10331": "tt0063350",
+  // Night of the Living Dead
+  "tv:1930": "tt0055662",
+  // The Beverly Hillbillies
+  "movie:550": "tt0137523",
+  // Fight Club
+  "tv:1396": "tt0903747"
+  // Breaking Bad
+};
 async function resolveImdbId(tmdbId, mediaType) {
   const pathType = mediaType === "movie" ? "movie" : "tv";
+  const seedKey = `${pathType}:${tmdbId}`;
+  if (SEED_MAPPINGS[seedKey]) {
+    return SEED_MAPPINGS[seedKey];
+  }
   const url = `${ID_API_BASE}/tmdb/${pathType}/${tmdbId}`;
   try {
     const res = await fetch(url, {
@@ -250,20 +276,39 @@ async function resolveImdbId(tmdbId, mediaType) {
   }
   return null;
 }
-async function resolveCinemetaRating(imdbId, mediaType) {
+async function resolveCinemetaDetails(imdbId, mediaType, season) {
   const pathType = mediaType === "movie" ? "movie" : "series";
   const url = `${CINEMETA_BASE}/meta/${pathType}/${imdbId}.json`;
   try {
     const res = await fetch(url, {
       headers: { "User-Agent": USER_AGENT }
     });
-    if (!res.ok) return null;
+    if (!res.ok) return { rating: null, episodeRatings: null };
     const body = await res.json();
     const rawRating = body?.meta?.imdbRating;
-    return parseRating(rawRating);
+    const parsedRating = parseRating(rawRating);
+    let episodeRatings = null;
+    if (mediaType === "tv" && typeof season === "number" && season > 0 && Array.isArray(body?.meta?.videos)) {
+      const epMap = {};
+      for (const v of body.meta.videos) {
+        if (v && v.season === season) {
+          const epNum = v.episode ?? v.number;
+          if (typeof epNum === "number" && Number.isInteger(epNum) && epNum >= 1) {
+            const r = parseRating(v.rating);
+            if (r !== null && r >= 0 && r <= 10) {
+              epMap[epNum] = r;
+            }
+          }
+        }
+      }
+      if (Object.keys(epMap).length > 0) {
+        episodeRatings = epMap;
+      }
+    }
+    return { rating: parsedRating, episodeRatings };
   } catch (err) {
     console.warn(`[TrailerooJS] Cinemeta request failed for ${imdbId}: ${err?.message || err}`);
-    return null;
+    return { rating: null, episodeRatings: null };
   }
 }
 function parseRating(value) {
@@ -335,6 +380,7 @@ var GARBAGE_PATTERNS = [
   "who from",
   "recap"
 ];
+var SEASON_WORDS = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
 function mentionedSeason(name) {
   const lower = name.toLowerCase();
   const tokens = lower.split(/\s+/);
@@ -345,6 +391,8 @@ function mentionedSeason(name) {
       if (next) {
         const num = parseInt(next, 10);
         if (!isNaN(num) && num > 0) return num;
+        const wIdx = SEASON_WORDS.indexOf(next);
+        if (wIdx > 0) return wIdx;
       }
     } else if (token.startsWith("s")) {
       const rest = token.slice(1);
@@ -358,12 +406,18 @@ function mentionedSeason(name) {
 }
 function matchesSeasonPattern(name, season) {
   const lower = name.toLowerCase();
+  const sStr = String(season);
+  const padS = sStr.padStart(2, "0");
+  const sWord = SEASON_WORDS[season] || "";
+  if (lower.includes(`season ${sStr}`) || lower.includes(`season ${padS}`) || sWord && lower.includes(`season ${sWord}`) || new RegExp(`\\bs${sStr}\\b`).test(lower) || new RegExp(`\\bs${padS}\\b`).test(lower) || new RegExp(`\\bs${sStr}e`).test(lower) || new RegExp(`\\bs${padS}e`).test(lower)) {
+    return true;
+  }
   const tokens = lower.split(/\s+/);
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i];
     if (token === "season") {
       const next = tokens[i + 1];
-      if (next && parseInt(next, 10) === season) {
+      if (next && (parseInt(next, 10) === season || next === sWord)) {
         return true;
       }
       continue;
@@ -393,12 +447,23 @@ function scoreVideoTitle(name, mediaTitle, season) {
     if (namedSeason !== null && namedSeason !== season) {
       return -1e3;
     }
+    for (let i = 1; i < SEASON_WORDS.length; i++) {
+      if (i !== season && lower.includes(`season ${SEASON_WORDS[i]}`)) {
+        return -1e3;
+      }
+    }
     if (isThisSeason) {
       if (lower.includes("official trailer")) return 600;
       if (lower.includes("trailer")) return 500;
       if (lower.includes("teaser")) return 400;
-      return 300;
+      if (season === 1 && (lower.includes("pilot") || lower.includes("premiere"))) return 450;
+      return 350;
     }
+    if (season === 1 && (lower.includes("pilot") || lower.includes("preview"))) return 150;
+    if (lowerMedia && (lower === lowerMedia || lower.startsWith(lowerMedia))) return 90;
+    if (lower.includes("official trailer")) return 80;
+    if (lower.includes("trailer")) return 60;
+    if (lower.includes("teaser")) return 40;
     return -500;
   }
   let score = 0;
@@ -496,7 +561,7 @@ async function resolveViaGraphql(imdbId, season) {
     query: QUERY_TITLE_VIDEOS,
     variables: {
       const: imdbId,
-      first: 20,
+      first: 50,
       filter: {
         maturityLevel: "INCLUDE_MATURE",
         nameConstraints: {},
@@ -512,9 +577,20 @@ async function resolveViaGraphql(imdbId, season) {
   }
   const rating = parseRating(title?.ratingsSummary?.aggregateRating);
   const mediaTitle = title?.titleText?.text || "";
-  const edges = title?.videoStrip?.edges;
+  const edges = [...title?.videoStrip?.edges ?? []];
+  if (title?.latestTrailer?.id) {
+    const ltId = title.latestTrailer.id;
+    if (!edges.some((e) => e?.node?.id === ltId)) {
+      edges.push({
+        node: {
+          id: ltId,
+          name: title.latestTrailer.name
+        }
+      });
+    }
+  }
   let trailerUrl = null;
-  if (Array.isArray(edges) && edges.length > 0) {
+  if (edges.length > 0) {
     const node = pickTrailerNode(edges, mediaTitle, season);
     if (node?.id) {
       trailerUrl = await resolvePlayback(node.id);
@@ -523,9 +599,22 @@ async function resolveViaGraphql(imdbId, season) {
   return { trailerUrl, rating };
 }
 async function resolveImdbDetails(imdbId, mediaType, season) {
+  if (mediaType === "tv" && typeof season === "number" && season > 0) {
+    const [metaGql, cinemeta] = await Promise.all([
+      resolveViaGraphql(imdbId, season),
+      resolveCinemetaDetails(imdbId, mediaType, season)
+    ]);
+    const finalRating = metaGql.rating ?? cinemeta.rating;
+    return {
+      trailerUrl: metaGql.trailerUrl,
+      rating: finalRating,
+      episodeRatings: cinemeta.episodeRatings
+    };
+  }
   const meta = await resolveViaGraphql(imdbId, season);
   if (meta.rating === null) {
-    meta.rating = await resolveCinemetaRating(imdbId, mediaType);
+    const cinemeta = await resolveCinemetaDetails(imdbId, mediaType, season);
+    meta.rating = cinemeta.rating;
   }
   return meta;
 }
@@ -533,7 +622,7 @@ var index_default = defineJsAddon({
   manifest: {
     id: "dev.fearless.traileroojs",
     name: "TrailerooJS",
-    version: "1.0.0",
+    version: "1.1.0",
     type: "js",
     description: "Adds the official IMDb rating and trailers for a TMDB title.",
     publisher: "fearless",
@@ -545,7 +634,7 @@ var index_default = defineJsAddon({
     capabilities: ["meta"]
   },
   /**
-   * getMeta handler: fills IMDb ID, IMDb rating, and official trailer URL
+   * getMeta handler: fills IMDb ID, overall IMDb rating, season episode ratings, and official trailers
    */
   getMeta: async (req) => {
     const tmdbId = req.tmdb_id ?? req.tmdbId;
@@ -555,16 +644,23 @@ var index_default = defineJsAddon({
       return null;
     }
     const imdbId = await resolveImdbId(tmdbId, mediaType);
-    let details = { trailerUrl: null, rating: null };
+    let details = { trailerUrl: null, rating: null, episodeRatings: null };
     if (imdbId) {
       details = await resolveImdbDetails(imdbId, mediaType, season);
     }
     if (!imdbId && !details.trailerUrl && details.rating === null) {
       return null;
     }
+    let overallRating = details.rating;
+    if (typeof overallRating === "number") {
+      if (!Number.isFinite(overallRating) || overallRating < 0 || overallRating > 10) {
+        overallRating = null;
+      }
+    }
     return {
       imdb_id: imdbId ?? null,
-      imdb_rating: details.rating ?? null,
+      overall_imdb_rating: overallRating ?? null,
+      episode_imdb_ratings: details.episodeRatings ?? void 0,
       trailers: details.trailerUrl ? [details.trailerUrl] : []
     };
   }
