@@ -228,15 +228,15 @@ function defineJsAddon(def) {
 // manifest.json
 var manifest_default = {
   id: "dev.fearless.embegatorjs",
-  name: "EmbeGatorJS",
+  name: "EmbegatorJS",
   version: "1.0.0",
   type: "js",
   description: "Direct stream resolver for movies and TV with adaptive MP4/HLS quality and embedded captions.",
   publisher: "fearless",
-  logo: "https://raw.githubusercontent.com/KamruzzamanMahin/Js-Addons/main/EmbeGatorJS/embegatorjs.png",
+  logo: "https://raw.githubusercontent.com/KamruzzamanMahin/Js-Addons/main/EmbegatorJS/embegatorjs.png",
   bundle: {
-    url: "https://raw.githubusercontent.com/KamruzzamanMahin/Js-Addons/main/EmbeGatorJS/bundle.js",
-    sha256: "d310e35d30517d1c098eeb328701b23b081fb579949758066f637a7ac978cd2b"
+    url: "https://raw.githubusercontent.com/KamruzzamanMahin/Js-Addons/main/EmbegatorJS/bundle.js",
+    sha256: "91ba9373633d63a4c812b63822d781a7e51ed50abb85938b367e1b5ce8844633"
   },
   capabilities: [
     "direct_stream"
