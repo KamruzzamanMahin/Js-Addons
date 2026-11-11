@@ -76,13 +76,6 @@ function validateApiKeyShape(value, label = "apiKey") {
 
 // node_modules/@delulu-addon/dad-sdk/dist/manifest.js
 var DAD_CAPABILITIES = ["meta", "direct_stream", "torrent", "subtitle"];
-var DAD_DEFAULT_LOGO_URL = typeof process !== "undefined" && process.env && process.env.DAD_DEFAULT_LOGO_URL || "https://delulu-addons.pages.dev/default_addon_logo.png";
-function withDefaultLogo(manifest, defaultLogoUrl = DAD_DEFAULT_LOGO_URL) {
-  if (manifest.logo === void 0 || manifest.logo === null || manifest.logo.trim() === "") {
-    return { ...manifest, logo: defaultLogoUrl };
-  }
-  return manifest;
-}
 var RESERVED_ID_PREFIX = "org.delulu.";
 var RESERVED_PUBLISHER = "delulu";
 function usesReservedId(id) {
@@ -114,7 +107,7 @@ function validateManifest(raw) {
   }
   const logoUnset = m.logo === void 0 || m.logo === null || typeof m.logo === "string" && m.logo.trim() === "";
   if (!logoUnset && !isHttpsUrl(m.logo)) {
-    errors.push("'logo' must be a non-empty HTTPS URL when set - omit it (or use null/'') to fall back to the DAD default logo");
+    errors.push("'logo' must be a non-empty HTTPS URL when set - omit it (or use null/'') and the client will render its own default");
   }
   const validCaps = DAD_CAPABILITIES;
   if (!Array.isArray(m.capabilities) || m.capabilities.length === 0) {
@@ -210,7 +203,7 @@ function assertAddonDefinition(def) {
   }
 }
 function defineJsAddon(def) {
-  const normalized = { ...def, manifest: withDefaultLogo(def.manifest) };
+  const normalized = def;
   assertAddonDefinition(normalized);
   const gMod = typeof globalThis !== "undefined" ? globalThis.module : void 0;
   if (gMod && gMod.exports) {
@@ -225,18 +218,22 @@ function defineJsAddon(def) {
   return normalized;
 }
 
+// node_modules/@delulu-addon/dad-sdk/dist/sandbox.js
+var CryptoJS = typeof globalThis !== "undefined" ? globalThis.CryptoJS : void 0;
+var cheerio = typeof globalThis !== "undefined" ? globalThis.cheerio : void 0;
+
 // manifest.json
 var manifest_default = {
   id: "dev.fearless.embegatorjs",
   name: "EmbegatorJS",
-  version: "1.0.0",
+  version: "1.1.0",
   type: "js",
   description: "Direct stream resolver for movies and TV with adaptive MP4/HLS quality and embedded captions.",
   publisher: "fearless",
   logo: "https://raw.githubusercontent.com/KamruzzamanMahin/Js-Addons/main/EmbegatorJS/embegatorjs.png",
   bundle: {
     url: "https://raw.githubusercontent.com/KamruzzamanMahin/Js-Addons/main/EmbegatorJS/bundle.js",
-    sha256: "91ba9373633d63a4c812b63822d781a7e51ed50abb85938b367e1b5ce8844633"
+    sha256: "5d0e245a3884ef12bf11424a943cf226c966aeffad5c13c71aeb3bb3f3bb74c6"
   },
   capabilities: [
     "direct_stream"
