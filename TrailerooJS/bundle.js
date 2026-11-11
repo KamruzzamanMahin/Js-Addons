@@ -74,13 +74,6 @@ function validateApiKeyShape(value, label = "apiKey") {
 
 // node_modules/@delulu-addon/dad-sdk/dist/manifest.js
 var DAD_CAPABILITIES = ["meta", "direct_stream", "torrent", "subtitle"];
-var DAD_DEFAULT_LOGO_URL = typeof process !== "undefined" && process.env && process.env.DAD_DEFAULT_LOGO_URL || "https://delulu-addons.pages.dev/default_addon_logo.png";
-function withDefaultLogo(manifest, defaultLogoUrl = DAD_DEFAULT_LOGO_URL) {
-  if (manifest.logo === void 0 || manifest.logo === null || manifest.logo.trim() === "") {
-    return { ...manifest, logo: defaultLogoUrl };
-  }
-  return manifest;
-}
 var RESERVED_ID_PREFIX = "org.delulu.";
 var RESERVED_PUBLISHER = "delulu";
 function usesReservedId(id) {
@@ -112,7 +105,7 @@ function validateManifest(raw) {
   }
   const logoUnset = m.logo === void 0 || m.logo === null || typeof m.logo === "string" && m.logo.trim() === "";
   if (!logoUnset && !isHttpsUrl(m.logo)) {
-    errors.push("'logo' must be a non-empty HTTPS URL when set - omit it (or use null/'') to fall back to the DAD default logo");
+    errors.push("'logo' must be a non-empty HTTPS URL when set - omit it (or use null/'') and the client will render its own default");
   }
   const validCaps = DAD_CAPABILITIES;
   if (!Array.isArray(m.capabilities) || m.capabilities.length === 0) {
@@ -208,7 +201,7 @@ function assertAddonDefinition(def) {
   }
 }
 function defineJsAddon(def) {
-  const normalized = { ...def, manifest: withDefaultLogo(def.manifest) };
+  const normalized = def;
   assertAddonDefinition(normalized);
   const gMod = typeof globalThis !== "undefined" ? globalThis.module : void 0;
   if (gMod && gMod.exports) {
@@ -222,6 +215,10 @@ function defineJsAddon(def) {
   }
   return normalized;
 }
+
+// node_modules/@delulu-addon/dad-sdk/dist/sandbox.js
+var CryptoJS = typeof globalThis !== "undefined" ? globalThis.CryptoJS : void 0;
+var cheerio = typeof globalThis !== "undefined" ? globalThis.cheerio : void 0;
 
 // src/index.ts
 var USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
