@@ -74,13 +74,6 @@ function validateApiKeyShape(value, label = "apiKey") {
 
 // node_modules/@delulu-addon/dad-sdk/dist/manifest.js
 var DAD_CAPABILITIES = ["meta", "direct_stream", "torrent", "subtitle"];
-var DAD_DEFAULT_LOGO_URL = typeof process !== "undefined" && process.env && process.env.DAD_DEFAULT_LOGO_URL || "https://delulu-addons.pages.dev/default_addon_logo.png";
-function withDefaultLogo(manifest, defaultLogoUrl = DAD_DEFAULT_LOGO_URL) {
-  if (manifest.logo === void 0 || manifest.logo === null || manifest.logo.trim() === "") {
-    return { ...manifest, logo: defaultLogoUrl };
-  }
-  return manifest;
-}
 var RESERVED_ID_PREFIX = "org.delulu.";
 var RESERVED_PUBLISHER = "delulu";
 function usesReservedId(id) {
@@ -112,7 +105,7 @@ function validateManifest(raw) {
   }
   const logoUnset = m.logo === void 0 || m.logo === null || typeof m.logo === "string" && m.logo.trim() === "";
   if (!logoUnset && !isHttpsUrl(m.logo)) {
-    errors.push("'logo' must be a non-empty HTTPS URL when set - omit it (or use null/'') to fall back to the DAD default logo");
+    errors.push("'logo' must be a non-empty HTTPS URL when set - omit it (or use null/'') and the client will render its own default");
   }
   const validCaps = DAD_CAPABILITIES;
   if (!Array.isArray(m.capabilities) || m.capabilities.length === 0) {
@@ -208,7 +201,7 @@ function assertAddonDefinition(def) {
   }
 }
 function defineJsAddon(def) {
-  const normalized = { ...def, manifest: withDefaultLogo(def.manifest) };
+  const normalized = def;
   assertAddonDefinition(normalized);
   const gMod = typeof globalThis !== "undefined" ? globalThis.module : void 0;
   if (gMod && gMod.exports) {
@@ -231,13 +224,14 @@ var cheerio = typeof globalThis !== "undefined" ? globalThis.cheerio : void 0;
 var manifest_default = {
   id: "dev.fearless.scrapyjs",
   name: "ScrapyJS",
-  version: "0.1.0",
+  version: "0.1.1",
   type: "js",
   description: "High-quality movie & TV streams in up to 4K HDR/Dolby Vision. Direct file URLs, resolved keylessly.",
   publisher: "fearless",
+  logo: "https://delulu-addons.pages.dev/default_addon_logo.png",
   bundle: {
     url: "https://raw.githubusercontent.com/KamruzzamanMahin/Js-Addons/main/ScrapyJS/bundle.js",
-    sha256: "4c21448ab8273d595d3d88c199f9ad33615cb10c8109621d4cef42fbce494e99"
+    sha256: "4d71c20b03fe9f235b8e014715c44d2577dc5e79ff94fcafbfafeda8cad6cc98"
   },
   capabilities: [
     "direct_stream"
