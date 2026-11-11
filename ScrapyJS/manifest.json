@@ -1,14 +1,14 @@
 {
   "id": "dev.fearless.scrapyjs",
   "name": "ScrapyJS",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "js",
   "description": "High-quality movie & TV streams in up to 4K HDR/Dolby Vision. Direct file URLs, resolved keylessly.",
   "publisher": "fearless",
   "logo": "https://delulu-addons.pages.dev/default_addon_logo.png",
   "bundle": {
     "url": "https://raw.githubusercontent.com/KamruzzamanMahin/Js-Addons/main/ScrapyJS/bundle.js",
-    "sha256": "4d71c20b03fe9f235b8e014715c44d2577dc5e79ff94fcafbfafeda8cad6cc98"
+    "sha256": "86578499dfd3834aafb3d124d123f8ca69d29542741dfb0ab356ab6a47f4389b"
   },
   "capabilities": [
     "direct_stream"
