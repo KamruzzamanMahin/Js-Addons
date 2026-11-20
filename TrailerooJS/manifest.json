@@ -1,7 +1,7 @@
 {
   "id": "dev.fearless.traileroojs",
   "name": "TrailerooJS",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "type": "js",
   "description": "Adds the official IMDb rating and trailers for a TMDB title.",
   "publisher": "fearless",

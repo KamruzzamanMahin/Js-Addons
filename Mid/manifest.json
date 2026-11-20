@@ -1,14 +1,14 @@
 {
   "id": "dev.fearless.mid",
   "name": "Mid",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "js",
   "description": "Direct high-speed streaming for movies and TV series powered by Rtally. Multi-server HLS streams with adaptive playback.",
   "publisher": "fearless",
   "logo": "https://delulu-addons.pages.dev/default_addon_logo.png",
   "bundle": {
     "url": "https://raw.githubusercontent.com/KamruzzamanMahin/Js-Addons/main/Mid/bundle.js",
-    "sha256": "0b645f1db5681328552ede8e9de73a133dd5a4d508fb981671701b4d2b642115"
+    "sha256": "9d877122c0a49d18f90bb903fbed9cc8c25c787df746e0da3a19a9bc3980a5ad"
   },
   "capabilities": [
     "direct_stream"

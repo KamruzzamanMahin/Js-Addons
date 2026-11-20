@@ -224,14 +224,14 @@ var cheerio = typeof globalThis !== "undefined" ? globalThis.cheerio : void 0;
 var manifest_default = {
   id: "dev.fearless.scrapyjs",
   name: "ScrapyJS",
-  version: "0.1.1",
+  version: "0.2.0",
   type: "js",
   description: "High-quality movie & TV streams in up to 4K HDR/Dolby Vision. Direct file URLs, resolved keylessly.",
   publisher: "fearless",
   logo: "https://delulu-addons.pages.dev/default_addon_logo.png",
   bundle: {
     url: "https://raw.githubusercontent.com/KamruzzamanMahin/Js-Addons/main/ScrapyJS/bundle.js",
-    sha256: "4d71c20b03fe9f235b8e014715c44d2577dc5e79ff94fcafbfafeda8cad6cc98"
+    sha256: ""
   },
   capabilities: [
     "direct_stream"

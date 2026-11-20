@@ -226,14 +226,14 @@ var cheerio = typeof globalThis !== "undefined" ? globalThis.cheerio : void 0;
 var manifest_default = {
   id: "dev.fearless.embegatorjs",
   name: "EmbegatorJS",
-  version: "1.1.0",
+  version: "1.2.0",
   type: "js",
   description: "Direct stream resolver for movies and TV with adaptive MP4/HLS quality and embedded captions.",
   publisher: "fearless",
   logo: "https://raw.githubusercontent.com/KamruzzamanMahin/Js-Addons/main/EmbegatorJS/embegatorjs.png",
   bundle: {
     url: "https://raw.githubusercontent.com/KamruzzamanMahin/Js-Addons/main/EmbegatorJS/bundle.js",
-    sha256: "5d0e245a3884ef12bf11424a943cf226c966aeffad5c13c71aeb3bb3f3bb74c6"
+    sha256: ""
   },
   capabilities: [
     "direct_stream"

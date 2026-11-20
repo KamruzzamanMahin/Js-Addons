@@ -1,14 +1,14 @@
 {
   "id": "dev.fearless.embegatorjs",
   "name": "EmbegatorJS",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "js",
   "description": "Direct stream resolver for movies and TV with adaptive MP4/HLS quality and embedded captions.",
   "publisher": "fearless",
   "logo": "https://raw.githubusercontent.com/KamruzzamanMahin/Js-Addons/main/EmbegatorJS/embegatorjs.png",
   "bundle": {
     "url": "https://raw.githubusercontent.com/KamruzzamanMahin/Js-Addons/main/EmbegatorJS/bundle.js",
-    "sha256": "7da4d79f5747c57f1e4da27388b94586493b6c99de02f8e133a8928a9029e0e6"
+    "sha256": "bfa802de9c6252465f2889a7f57822fe85d859bd32377bed76b1d5feddc23f9a"
   },
   "capabilities": [
     "direct_stream"
